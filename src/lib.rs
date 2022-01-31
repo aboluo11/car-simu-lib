@@ -29,6 +29,13 @@ fn new_rotation_matrix(angle: f32) -> Matrix<2, 2> {
 }
 
 #[derive(Clone, Copy)]
+struct Color {
+    r: u8,
+    g: u8,
+    b: u8,
+}
+
+#[derive(Clone, Copy)]
 pub struct Point {
     x: f32,
     y: f32,
@@ -125,22 +132,27 @@ impl Rotation {
     }
 }
 
+enum Source {
+    Color(Color),
+    Image(Vec<u32>),
+}
 
-#[derive(Clone, Copy)]
 struct Rect {
     origin: Point,
     width: f32,
     height: f32,
     rotation_matrix: Matrix<2,2>,
+    source: Source,
 }
 
 impl Rect {
-    fn new(origin: Point, width: f32, height: f32) -> Rect {
+    fn new(origin: Point, width: f32, height: f32, source: Source) -> Rect {
         Rect {
             origin,
             width,
             height,
             rotation_matrix: Matrix::<2, 2>::eye(),
+            source,
         }
     }
 
@@ -178,37 +190,19 @@ impl Rect {
     }
 }
 
-struct Logo {
-    data: Vec<u32>,
-    outline: Rect,
-}
-
-impl Logo {
-    fn new(path: &std::path::Path, origin: Point, width: f32) -> Self {
-        let svg = usvg::Tree::from_data(&std::fs::read(path).unwrap(), &usvg::Options::default().to_ref()).unwrap();
-        let (svg_ori_width, svg_ori_height) = (svg.svg_node().size.width(), svg.svg_node().size.height());
-        let height = (svg_ori_height/svg_ori_width) as f32 * width;
-        let mut pixmap = tiny_skia::Pixmap::new((width*SCALE) as u32, (height*SCALE) as u32).unwrap();
-        resvg::render(&svg, usvg::FitTo::Width((width*SCALE) as u32), pixmap.as_mut()).unwrap();
-        let mut data = vec![];
-        for chunk in pixmap.data().chunks(4) {
-            if let &[r, g, b, a] = chunk {
-                data.push(u32::from_be_bytes([a, r, g, b]));
-            }
-        }
-        Logo {
-            data,
-            outline: Rect::new(origin, width, height),
+fn new_logo(path: &std::path::Path, origin: Point, width: f32) -> Rect {
+    let svg = usvg::Tree::from_data(&std::fs::read(path).unwrap(), &usvg::Options::default().to_ref()).unwrap();
+    let (svg_ori_width, svg_ori_height) = (svg.svg_node().size.width(), svg.svg_node().size.height());
+    let height = (svg_ori_height/svg_ori_width) as f32 * width;
+    let mut pixmap = tiny_skia::Pixmap::new((width*SCALE) as u32, (height*SCALE) as u32).unwrap();
+    resvg::render(&svg, usvg::FitTo::Width((width*SCALE) as u32), pixmap.as_mut()).unwrap();
+    let mut data = vec![];
+    for chunk in pixmap.data().chunks(4) {
+        if let &[r, g, b, a] = chunk {
+            data.push(u32::from_be_bytes([a, r, g, b]));
         }
     }
-
-    fn rotate(&mut self, rotation: Rotation) {
-        self.outline.rotate(rotation);
-    }
-
-    fn forward(&mut self, distance: f32, rotation_matrix: Matrix<2,2>) {
-        self.outline.forward(distance, rotation_matrix);
-    }
+    Rect::new(origin, width, height, Source::Image(data))
 }
 
 struct Car {
@@ -225,33 +219,33 @@ struct Car {
 
 impl Car {
     fn new(body_origin: Point, angle: f32) -> Car {
-        let body_color = SolidSource::from_unpremultiplied_argb(0xff, 24, 174, 219);
-        let wheel_color = SolidSource::from_unpremultiplied_argb(0xff, 0, 0, 0);
-        let mut body = Rect::new(body_origin, CAR_WIDTH, CAR_HEIGHT, Some(body_color));
+        let body_color = Color {r: 24, g: 174, b: 219};
+        let wheel_color = Color {r: 0, g: 0, b: 0};
+        let mut body = Rect::new(body_origin, CAR_WIDTH, CAR_HEIGHT, Source::Color(body_color));
         let mut lt = Rect::new(point2(body.origin.x-TRACK_WIDTH/2., CAR_HEIGHT/2.+body.origin.y-FRONT_SUSPENSION),
-        WHEEL_WIDTH, WHEEL_HEIGHT, Some(wheel_color));
+        WHEEL_WIDTH, WHEEL_HEIGHT, Source::Color(wheel_color));
         let mut rt = Rect::new(point2(body.origin.x+TRACK_WIDTH/2., CAR_HEIGHT/2.+body.origin.y-FRONT_SUSPENSION),
-        WHEEL_WIDTH, WHEEL_HEIGHT, Some(wheel_color));
+        WHEEL_WIDTH, WHEEL_HEIGHT, Source::Color(wheel_color));
         let mut lb = Rect::new(point2(body.origin.x-TRACK_WIDTH/2., -CAR_HEIGHT/2.+body.origin.y+REAR_SUSPENSION),
-        WHEEL_WIDTH, WHEEL_HEIGHT, Some(wheel_color));
+        WHEEL_WIDTH, WHEEL_HEIGHT, Source::Color(wheel_color));
         let mut rb = Rect::new(point2(body.origin.x+TRACK_WIDTH/2., -CAR_HEIGHT/2.+body.origin.y+REAR_SUSPENSION),
-        WHEEL_WIDTH, WHEEL_HEIGHT, Some(wheel_color));
-        let mut logo = Logo::new(
+        WHEEL_WIDTH, WHEEL_HEIGHT, Source::Color(wheel_color));
+        let mut logo = new_logo(
             std::path::Path::new("res/tesla.svg"),
             point2(body_origin.x, body_origin.y+CAR_HEIGHT/2.-0.2),
             LOGO_WIDTH,
         );
-        logo.outline.origin.y -= logo.outline.height/2.;
+        logo.origin.y -= logo.height/2.;
         let mut left_mirror = Rect::new(
             point2(
                 body_origin.x-CAR_WIDTH/2.-MIRROR_HEIGHT/2.,
                 body_origin.y+CAR_HEIGHT/2.-MIRROR_ORIGIN_TO_FRONT,
-            ), MIRROR_WIDTH, MIRROR_HEIGHT, Some(body_color));
+            ), MIRROR_WIDTH, MIRROR_HEIGHT, Source::Color(body_color));
         let mut right_mirror = Rect::new(
             point2(
                 body_origin.x+CAR_WIDTH/2.+MIRROR_HEIGHT/2.,
                 body_origin.y+CAR_HEIGHT/2.-MIRROR_ORIGIN_TO_FRONT,
-            ), MIRROR_WIDTH, MIRROR_HEIGHT, Some(body_color));
+            ), MIRROR_WIDTH, MIRROR_HEIGHT, Source::Color(body_color));
         left_mirror.rotate_self(new_rotation_matrix(std::f32::consts::PI/2.));
         right_mirror.rotate_self(new_rotation_matrix(std::f32::consts::PI/2.));
         left_mirror.rotate(Rotation::new(std::f32::consts::PI/2.-MIRROR_ANGLE, left_mirror.rb()));
