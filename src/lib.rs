@@ -1,10 +1,13 @@
 mod linear_algebra;
+mod map;
 
 use std::ops;
 
 use linear_algebra::{Matrix, Vector2D};
 
 static SCALE: f32 = 30.;
+static MAP_WIDTH: f32 = 800./SCALE;
+static MAP_HEIGHT: f32 = 800./SCALE;
 const CAR_WIDTH: f32 = 1.837;
 const CAR_HEIGHT: f32 = 4.765;
 const LOGO_WIDTH: f32 = 1.0;
@@ -212,7 +215,7 @@ struct Car {
     rb: Rect,
     body: Rect,
     steer_angle: i32,
-    logo: Logo,
+    logo: Rect,
     left_mirror: Rect,
     right_mirror: Rect,
 }
