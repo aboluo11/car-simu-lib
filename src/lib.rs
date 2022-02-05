@@ -4,6 +4,7 @@ mod map;
 use std::ops;
 
 use linear_algebra::{Matrix, Vector2D};
+pub use map::*;
 
 static SCALE: f32 = 30.;
 static MAP_WIDTH: f32 = 800./SCALE;

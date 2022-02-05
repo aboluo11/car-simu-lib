@@ -1,6 +1,7 @@
 use crate::Car;
+pub use parallel_parking::ParallelParking;
 
-pub mod parallel_parking;
+mod parallel_parking;
 
 trait Map {
     fn car(&self) -> Car;
