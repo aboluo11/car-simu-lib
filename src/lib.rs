@@ -160,22 +160,22 @@ impl Rect {
         }
     }
 
-    fn lt(&self) -> Point {
+    pub fn lt(&self) -> Point {
         point2(self.origin.x - self.width/2., self.origin.y + self.height/2.)
             .rotate(Rotation { rotation_matrix: self.rotation_matrix, origin: self.origin })
     }
 
-    fn rt(&self) -> Point {
+    pub fn rt(&self) -> Point {
         point2(self.origin.x + self.width/2., self.origin.y + self.height/2.)
             .rotate(Rotation { rotation_matrix: self.rotation_matrix, origin: self.origin })
     }
 
-    fn lb(&self) -> Point {
+    pub fn lb(&self) -> Point {
         point2(self.origin.x - self.width/2., self.origin.y - self.height/2.)
             .rotate(Rotation { rotation_matrix: self.rotation_matrix, origin: self.origin })
     }
 
-    fn rb(&self) -> Point {
+    pub fn rb(&self) -> Point {
         point2(self.origin.x + self.width/2., self.origin.y - self.height/2.)
             .rotate(Rotation { rotation_matrix: self.rotation_matrix, origin: self.origin })
     }
@@ -207,10 +207,6 @@ fn new_logo(path: &std::path::Path, origin: Point, width: f32) -> Rect {
         }
     }
     Rect::new(origin, width, height, Source::Image(data))
-}
-
-pub trait View {
-    fn draw();
 }
 
 pub struct Car {
