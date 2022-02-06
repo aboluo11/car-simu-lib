@@ -141,7 +141,7 @@ enum Source {
     Image(Vec<u32>),
 }
 
-struct Rect {
+pub struct Rect {
     origin: Point,
     width: f32,
     height: f32,
@@ -209,7 +209,11 @@ fn new_logo(path: &std::path::Path, origin: Point, width: f32) -> Rect {
     Rect::new(origin, width, height, Source::Image(data))
 }
 
-struct Car {
+pub trait View {
+    fn draw();
+}
+
+pub struct Car {
     lt: Rect,
     rt: Rect,
     lb: Rect,

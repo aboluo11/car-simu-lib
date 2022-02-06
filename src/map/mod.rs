@@ -3,6 +3,6 @@ pub use parallel_parking::ParallelParking;
 
 mod parallel_parking;
 
-trait Map {
+pub trait Map {
     fn car(&self) -> Car;
 }
