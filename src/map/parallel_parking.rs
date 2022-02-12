@@ -2,9 +2,9 @@ use crate::{CAR_HEIGHT, CAR_WIDTH, Rect, point2, Car, MAP_WIDTH, MAP_HEIGHT, Col
 
 use super::Map;
 
-const ROAD_WIDTH: f32 = CAR_WIDTH * 3.;
-const PARKING_LENGTH: f32 = 6.7;
-const PARKING_WIDTH: f32 = 3.0;
+const ROAD_WIDTH: f64 = CAR_WIDTH * 3.;
+const PARKING_LENGTH: f64 = 6.7;
+const PARKING_WIDTH: f64 = 3.0;
 
 pub struct ParallelParking {
     road: Rect,

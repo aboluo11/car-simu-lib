@@ -6,29 +6,29 @@ use std::ops;
 use linear_algebra::{Matrix, Vector2D};
 pub use map::*;
 
-static SCALE: f32 = 30.;
-static MAP_WIDTH: f32 = 800./SCALE;
-static MAP_HEIGHT: f32 = 800./SCALE;
-const CAR_WIDTH: f32 = 1.837;
-const CAR_HEIGHT: f32 = 4.765;
-const LOGO_WIDTH: f32 = 1.0;
-const WHEEL_WIDTH: f32 = 0.215;
-const WHEEL_HEIGHT: f32 = WHEEL_WIDTH*0.55*2.+1./39.37*17.;
-const TURNING_RADIUS: f32 = 5.5;
+pub static SCALE: f64 = 30.;
+pub static MAP_WIDTH: f64 = 800./SCALE;
+pub static MAP_HEIGHT: f64 = 800./SCALE;
+const CAR_WIDTH: f64 = 1.837;
+const CAR_HEIGHT: f64 = 4.765;
+const LOGO_WIDTH: f64 = 1.0;
+const WHEEL_WIDTH: f64 = 0.215;
+const WHEEL_HEIGHT: f64 = WHEEL_WIDTH*0.55*2.+1./39.37*17.;
+const TURNING_RADIUS: f64 = 5.5;
 const TURNING_COUNT: i32 = 4;
-const TRACK_WIDTH: f32 = 1.58;
-const FRONT_SUSPENSION: f32 = 0.92;
-const REAR_SUSPENSION: f32 = 1.05;
-const MIRROR_WIDTH: f32 = 0.08;
-const MIRROR_HEIGHT: f32 = 0.35;
-const MIRROR_ANGLE: f32 = 70./180.*std::f32::consts::PI;
-const MIRROR_ORIGIN_TO_FRONT: f32 = 1.55-MIRROR_WIDTH/2.;
+const TRACK_WIDTH: f64 = 1.58;
+const FRONT_SUSPENSION: f64 = 0.92;
+const REAR_SUSPENSION: f64 = 1.05;
+const MIRROR_WIDTH: f64 = 0.08;
+const MIRROR_HEIGHT: f64 = 0.35;
+const MIRROR_ANGLE: f64 = 70./180.*std::f64::consts::PI;
+const MIRROR_ORIGIN_TO_FRONT: f64 = 1.55-MIRROR_WIDTH/2.;
 
 
-fn new_rotation_matrix(angle: f32) -> Matrix<2, 2> {
+fn new_rotation_matrix(angle: f64) -> Matrix<2, 2> {
     Matrix::new([
-        [f32::cos(angle), -f32::sin(angle)],
-        [f32::sin(angle), f32::cos(angle)],
+        [f64::cos(angle), -f64::sin(angle)],
+        [f64::sin(angle), f64::cos(angle)],
     ])
 }
 
@@ -41,8 +41,8 @@ struct Color {
 
 #[derive(Clone, Copy)]
 pub struct Point {
-    x: f32,
-    y: f32,
+    x: f64,
+    y: f64,
 }
 
 impl Point {
@@ -50,7 +50,7 @@ impl Point {
         rotation.rotation_matrix * (*self-rotation.origin) + rotation.origin
     }
 
-    fn forward(&self, distance: f32, rotation_matrix: Matrix<2, 2>) -> Point {
+    fn forward(&self, distance: f64, rotation_matrix: Matrix<2, 2>) -> Point {
         point2(self.x, self.y+distance).rotate(Rotation {
             rotation_matrix,
             origin: *self,
@@ -62,13 +62,13 @@ impl Point {
     }
 }
 
-impl From<(f32, f32)> for Point {
-    fn from(p: (f32, f32)) -> Self {
+impl From<(f64, f64)> for Point {
+    fn from(p: (f64, f64)) -> Self {
         point2(p.0, p.1)
     }
 }
 
-impl From<Point> for (f32, f32) {
+impl From<Point> for (f64, f64) {
     fn from(p: Point) -> Self {
         (p.x, p.y)
     }
@@ -111,13 +111,13 @@ impl ops::Add<Point> for Vector2D {
 }
 
 
-fn point2(x: f32, y: f32) -> Point {
+fn point2(x: f64, y: f64) -> Point {
     Point {x, y}
 }
 
-fn distance_of(x: Point, y: Point) -> f32 {
+fn distance_of(x: Point, y: Point) -> f64 {
     let a = x - y;
-    f32::sqrt(a.x()*a.x() + a.y()*a.y())
+    f64::sqrt(a.x()*a.x() + a.y()*a.y())
 }
 
 
@@ -128,7 +128,7 @@ struct Rotation {
 }
 
 impl Rotation {
-    fn new(angle: f32, origin: Point) -> Rotation {
+    fn new(angle: f64, origin: Point) -> Rotation {
         Rotation {
             rotation_matrix: new_rotation_matrix(angle),
             origin
@@ -142,15 +142,15 @@ enum Source {
 }
 
 pub struct Rect {
-    origin: Point,
-    width: f32,
-    height: f32,
+    pub origin: Point,
+    pub width: f64,
+    pub height: f64,
     rotation_matrix: Matrix<2,2>,
     source: Source,
 }
 
 impl Rect {
-    fn new(origin: Point, width: f32, height: f32, source: Source) -> Rect {
+    fn new(origin: Point, width: f64, height: f64, source: Source) -> Rect {
         Rect {
             origin,
             width,
@@ -189,15 +189,15 @@ impl Rect {
         self.rotate_self(rotation.rotation_matrix);
     }
 
-    fn forward(&mut self, distance: f32, rotation_matrix: Matrix<2,2>) {
+    fn forward(&mut self, distance: f64, rotation_matrix: Matrix<2,2>) {
         self.origin = self.origin.forward(distance, rotation_matrix);
     }
 }
 
-fn new_logo(path: &std::path::Path, origin: Point, width: f32) -> Rect {
+fn new_logo(path: &std::path::Path, origin: Point, width: f64) -> Rect {
     let svg = usvg::Tree::from_data(&std::fs::read(path).unwrap(), &usvg::Options::default().to_ref()).unwrap();
     let (svg_ori_width, svg_ori_height) = (svg.svg_node().size.width(), svg.svg_node().size.height());
-    let height = (svg_ori_height/svg_ori_width) as f32 * width;
+    let height = (svg_ori_height/svg_ori_width) as f64 * width;
     let mut pixmap = tiny_skia::Pixmap::new((width*SCALE) as u32, (height*SCALE) as u32).unwrap();
     resvg::render(&svg, usvg::FitTo::Width((width*SCALE) as u32), pixmap.as_mut()).unwrap();
     let mut data = vec![];
@@ -210,11 +210,11 @@ fn new_logo(path: &std::path::Path, origin: Point, width: f32) -> Rect {
 }
 
 pub struct Car {
-    lt: Rect,
-    rt: Rect,
-    lb: Rect,
-    rb: Rect,
-    body: Rect,
+    pub lt: Rect,
+    pub rt: Rect,
+    pub lb: Rect,
+    pub rb: Rect,
+    pub body: Rect,
     steer_angle: i32,
     logo: Rect,
     left_mirror: Rect,
@@ -222,7 +222,7 @@ pub struct Car {
 }
 
 impl Car {
-    fn new(body_origin: Point, angle: f32) -> Car {
+    fn new(body_origin: Point, angle: f64) -> Car {
         let body_color = Color {r: 24, g: 174, b: 219};
         let wheel_color = Color {r: 0, g: 0, b: 0};
         let mut body = Rect::new(body_origin, CAR_WIDTH, CAR_HEIGHT, Source::Color(body_color));
@@ -250,10 +250,10 @@ impl Car {
                 body_origin.x+CAR_WIDTH/2.+MIRROR_HEIGHT/2.,
                 body_origin.y+CAR_HEIGHT/2.-MIRROR_ORIGIN_TO_FRONT,
             ), MIRROR_WIDTH, MIRROR_HEIGHT, Source::Color(body_color));
-        left_mirror.rotate_self(new_rotation_matrix(std::f32::consts::PI/2.));
-        right_mirror.rotate_self(new_rotation_matrix(std::f32::consts::PI/2.));
-        left_mirror.rotate(Rotation::new(std::f32::consts::PI/2.-MIRROR_ANGLE, left_mirror.rb()));
-        right_mirror.rotate(Rotation::new(-(std::f32::consts::PI/2.-MIRROR_ANGLE), right_mirror.rt()));
+        left_mirror.rotate_self(new_rotation_matrix(std::f64::consts::PI/2.));
+        right_mirror.rotate_self(new_rotation_matrix(std::f64::consts::PI/2.));
+        left_mirror.rotate(Rotation::new(std::f64::consts::PI/2.-MIRROR_ANGLE, left_mirror.rb()));
+        right_mirror.rotate(Rotation::new(-(std::f64::consts::PI/2.-MIRROR_ANGLE), right_mirror.rt()));
         let rotation = Rotation::new(angle, body_origin);
         body.rotate(rotation);
         lt.rotate(rotation);
@@ -268,19 +268,19 @@ impl Car {
         }
     }
 
-    fn angle_matrix(&self, r: f32) -> Matrix<2, 2> {
-        let c = f32::sqrt(r*r + self.L()*self.L());
+    fn angle_matrix(&self, r: f64) -> Matrix<2, 2> {
+        let c = f64::sqrt(r*r + self.L()*self.L());
         Matrix { inner: [
             [r/c, -self.L()/c],
             [self.L()/c, r/c],
         ] }
     }
 
-    fn small_angle_matrix(&self, r: f32) -> Matrix<2,2> {
+    fn small_angle_matrix(&self, r: f64) -> Matrix<2,2> {
         self.angle_matrix(r+self.T()/2.)
     }
 
-    fn big_angle_matrix(&self, r: f32) -> Matrix<2,2> {
+    fn big_angle_matrix(&self, r: f64) -> Matrix<2,2> {
         self.angle_matrix(r-self.T()/2.)
     }
 
@@ -307,7 +307,7 @@ impl Car {
         self.rt.rotation_matrix = rt * self.body.rotation_matrix;
     }
 
-    fn forward(&mut self, distance: f32) {
+    fn forward(&mut self, distance: f64) {
         let o = self.angle2origin(self.steer_angle);
         if let Some(o) = o {
             let angle = distance/distance_of(self.top_origin(), o) 
@@ -334,11 +334,11 @@ impl Car {
         }
     }
 
-    fn L(&self) -> f32 {
+    fn L(&self) -> f64 {
         distance_of(self.lt.origin, self.lb.origin)
     }
 
-    fn T(&self) -> f32 {
+    fn T(&self) -> f64 {
         distance_of(self.lb.origin, self.rb.origin)
     }
 
@@ -364,14 +364,14 @@ impl Car {
         }
     }
 
-    fn angle2r(&self, angle: i32) -> Option<f32> {
+    fn angle2r(&self, angle: i32) -> Option<f64> {
         // angle>0: 向左转, r>0; angle<0: 向右转, r<0;
         if angle == 0 {
             None
         } else {
             Some(
-                (TURNING_COUNT as f32)*(f32::sqrt(TURNING_RADIUS*TURNING_RADIUS-self.L()*self.L())-self.T()/2.)
-                    /(angle as f32)
+                (TURNING_COUNT as f64)*(f64::sqrt(TURNING_RADIUS*TURNING_RADIUS-self.L()*self.L())-self.T()/2.)
+                    /(angle as f64)
             )
         }
     }
