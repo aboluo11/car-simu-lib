@@ -33,7 +33,7 @@ fn new_rotation_matrix(angle: f64) -> Matrix<2, 2> {
 }
 
 #[derive(Clone, Copy)]
-struct Color {
+pub struct Color {
     r: u8,
     g: u8,
     b: u8,
@@ -59,6 +59,10 @@ impl Point {
 
     fn translate(&self, translation: Vector2D) -> Point {
         *self + translation
+    }
+
+    pub fn to_real(&self) -> Point {
+        (self.x*SCALE, (MAP_HEIGHT-self.y)*SCALE).into()
     }
 }
 
@@ -136,17 +140,19 @@ impl Rotation {
     }
 }
 
-enum Source {
+#[derive(Clone)]
+pub enum Source {
     Color(Color),
     Image(Vec<u32>),
 }
 
+#[derive(Clone)]
 pub struct Rect {
     pub origin: Point,
     pub width: f64,
     pub height: f64,
     rotation_matrix: Matrix<2,2>,
-    source: Source,
+    pub source: Source,
 }
 
 impl Rect {
@@ -209,6 +215,7 @@ fn new_logo(path: &std::path::Path, origin: Point, width: f64) -> Rect {
     Rect::new(origin, width, height, Source::Image(data))
 }
 
+#[derive(Clone)]
 pub struct Car {
     pub lt: Rect,
     pub rt: Rect,
@@ -307,7 +314,7 @@ impl Car {
         self.rt.rotation_matrix = rt * self.body.rotation_matrix;
     }
 
-    fn forward(&mut self, distance: f64) {
+    pub fn forward(&mut self, distance: f64) {
         let o = self.angle2origin(self.steer_angle);
         if let Some(o) = o {
             let angle = distance/distance_of(self.top_origin(), o) 
