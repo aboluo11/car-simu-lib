@@ -140,11 +140,13 @@ impl Rotation {
     }
 }
 
+#[derive(Clone)]
 pub enum Source {
     Color(Color),
     Image(Vec<u32>),
 }
 
+#[derive(Clone)]
 pub struct Rect {
     pub origin: Point,
     pub width: f64,
@@ -213,6 +215,7 @@ fn new_logo(path: &std::path::Path, origin: Point, width: f64) -> Rect {
     Rect::new(origin, width, height, Source::Image(data))
 }
 
+#[derive(Clone)]
 pub struct Car {
     pub lt: Rect,
     pub rt: Rect,
