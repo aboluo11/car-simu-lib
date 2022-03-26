@@ -1,6 +1,6 @@
 use std::ops;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct Matrix<const R: usize, const C: usize> {
     pub inner: [[f64; C]; R]
 }

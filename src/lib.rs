@@ -39,10 +39,10 @@ pub struct Color {
     b: u8,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Point {
-    x: f64,
-    y: f64,
+    pub x: f64,
+    pub y: f64,
 }
 
 impl Point {
@@ -140,16 +140,18 @@ impl Rotation {
     }
 }
 
+#[derive(Clone)]
 pub enum Source {
     Color(Color),
-    Image(Vec<u32>),
+    Svg(&'static [u8]),
 }
 
+#[derive(Clone)]
 pub struct Rect {
     pub origin: Point,
     pub width: f64,
     pub height: f64,
-    rotation_matrix: Matrix<2,2>,
+    pub rotation_matrix: Matrix<2,2>,
     pub source: Source,
 }
 
@@ -199,20 +201,19 @@ impl Rect {
 }
 
 fn new_logo(path: &std::path::Path, origin: Point, width: f64) -> Rect {
-    let svg = usvg::Tree::from_data(&std::fs::read(path).unwrap(), &usvg::Options::default().to_ref()).unwrap();
-    let (svg_ori_width, svg_ori_height) = (svg.svg_node().size.width(), svg.svg_node().size.height());
-    let height = (svg_ori_height/svg_ori_width) as f64 * width;
-    let mut pixmap = tiny_skia::Pixmap::new((width*SCALE) as u32, (height*SCALE) as u32).unwrap();
-    resvg::render(&svg, usvg::FitTo::Width((width*SCALE) as u32), pixmap.as_mut()).unwrap();
-    let mut data = vec![];
-    for chunk in pixmap.data().chunks(4) {
-        if let &[r, g, b, a] = chunk {
-            data.push(u32::from_be_bytes([a, r, g, b]));
-        }
-    }
-    Rect::new(origin, width, height, Source::Image(data))
+    // let mut pixmap = tiny_skia::Pixmap::new((width*SCALE) as u32, (height*SCALE) as u32).unwrap();
+    // resvg::render(&svg, usvg::FitTo::Width((width*SCALE) as u32), pixmap.as_mut()).unwrap();
+    // let mut data = vec![];
+    // for chunk in pixmap.data().chunks(4) {
+    //     if let &[r, g, b, a] = chunk {
+    //         data.push(u32::from_be_bytes([a, r, g, b]));
+    //     }
+    // }
+    let data = include_bytes!("../res/tesla.svg");
+    Rect::new(origin, width, 0., Source::Svg(data))
 }
 
+#[derive(Clone)]
 pub struct Car {
     pub lt: Rect,
     pub rt: Rect,
@@ -380,14 +381,14 @@ impl Car {
         }
     }
 
-    fn left_steer(&mut self) {
+    pub fn left_steer(&mut self) {
         if self.steer_angle < TURNING_COUNT {
             self.steer_angle += 1;
             self.steer();
         }
     }
 
-    fn right_steer(&mut self) {
+    pub fn right_steer(&mut self) {
         if self.steer_angle > -TURNING_COUNT {
             self.steer_angle -= 1;
             self.steer();
