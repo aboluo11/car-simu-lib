@@ -34,9 +34,9 @@ fn new_rotation_matrix(angle: f64) -> Matrix<2, 2> {
 
 #[derive(Clone, Copy)]
 pub struct Color {
-    r: u8,
-    g: u8,
-    b: u8,
+    pub r: u8,
+    pub g: u8,
+    pub b: u8,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -143,7 +143,7 @@ impl Rotation {
 #[derive(Clone)]
 pub enum Source {
     Color(Color),
-    Svg(&'static [u8]),
+    Svg(&'static str),
 }
 
 #[derive(Clone)]
@@ -200,16 +200,8 @@ impl Rect {
     }
 }
 
-fn new_logo(path: &std::path::Path, origin: Point, width: f64) -> Rect {
-    // let mut pixmap = tiny_skia::Pixmap::new((width*SCALE) as u32, (height*SCALE) as u32).unwrap();
-    // resvg::render(&svg, usvg::FitTo::Width((width*SCALE) as u32), pixmap.as_mut()).unwrap();
-    // let mut data = vec![];
-    // for chunk in pixmap.data().chunks(4) {
-    //     if let &[r, g, b, a] = chunk {
-    //         data.push(u32::from_be_bytes([a, r, g, b]));
-    //     }
-    // }
-    let data = include_bytes!("../res/tesla.svg");
+fn new_logo(origin: Point, width: f64) -> Rect {
+    let data = include_str!("../res/tesla.svg");
     Rect::new(origin, width, 0., Source::Svg(data))
 }
 
@@ -221,7 +213,7 @@ pub struct Car {
     pub rb: Rect,
     pub body: Rect,
     steer_angle: i32,
-    logo: Rect,
+    pub logo: Rect,
     left_mirror: Rect,
     right_mirror: Rect,
 }
@@ -240,8 +232,7 @@ impl Car {
         let mut rb = Rect::new(point2(body.origin.x+TRACK_WIDTH/2., -CAR_HEIGHT/2.+body.origin.y+REAR_SUSPENSION),
         WHEEL_WIDTH, WHEEL_HEIGHT, Source::Color(wheel_color));
         let mut logo = new_logo(
-            std::path::Path::new("res/tesla.svg"),
-            point2(body_origin.x, body_origin.y+CAR_HEIGHT/2.-0.2),
+            point2(body_origin.x, body_origin.y+CAR_HEIGHT/2.-0.6),
             LOGO_WIDTH,
         );
         logo.origin.y -= logo.height/2.;
