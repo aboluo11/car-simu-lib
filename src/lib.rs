@@ -7,6 +7,7 @@ use linear_algebra::{Matrix, Vector2D};
 pub use map::*;
 
 pub static SCALE: f64 = 30.;
+pub static SPEED: f64 = 5.;         // 5m/s
 pub static MAP_WIDTH: f64 = 800./SCALE;
 pub static MAP_HEIGHT: f64 = 800./SCALE;
 const CAR_WIDTH: f64 = 1.837;
@@ -214,8 +215,8 @@ pub struct Car {
     pub body: Rect,
     steer_angle: i32,
     pub logo: Rect,
-    left_mirror: Rect,
-    right_mirror: Rect,
+    pub left_mirror: Rect,
+    pub right_mirror: Rect,
 }
 
 impl Car {
