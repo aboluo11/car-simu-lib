@@ -10,8 +10,8 @@ pub static SCALE: f64 = 30.;
 pub static SPEED: f64 = 5.;         // 5m/s
 pub static MAP_WIDTH: f64 = 800./SCALE;
 pub static MAP_HEIGHT: f64 = 800./SCALE;
-const CAR_WIDTH: f64 = 1.837;
-const CAR_HEIGHT: f64 = 4.765;
+pub const CAR_WIDTH: f64 = 1.837;
+pub const CAR_HEIGHT: f64 = 4.765;
 const LOGO_WIDTH: f64 = 1.0;
 const WHEEL_WIDTH: f64 = 0.215;
 const WHEEL_HEIGHT: f64 = WHEEL_WIDTH*0.55*2.+1./39.37*17.;
@@ -202,7 +202,7 @@ impl Rect {
 }
 
 fn new_logo(origin: Point, width: f64) -> Rect {
-    let data = include_str!("../res/tesla.svg");
+    let data = include_str!("../res/logo/tesla.svg");
     Rect::new(origin, width, 0., Source::Svg(data))
 }
 
@@ -220,7 +220,7 @@ pub struct Car {
 }
 
 impl Car {
-    fn new(body_origin: Point, angle: f64) -> Car {
+    pub fn new(body_origin: Point, angle: f64) -> Car {
         let body_color = Color {r: 24, g: 174, b: 219};
         let wheel_color = Color {r: 0, g: 0, b: 0};
         let mut body = Rect::new(body_origin, CAR_WIDTH, CAR_HEIGHT, Source::Color(body_color));
